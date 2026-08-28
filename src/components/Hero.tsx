@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Sparkles, Monitor, Apple, Terminal, ArrowRight, ShieldCheck, Zap, Disc3 } from 'lucide-react';
+import { Apple, Monitor, Terminal, ArrowRight, ShieldCheck, Zap, Disc3 } from 'lucide-react';
 import { DetectedOS, LatestRelease } from '../utils/github';
 
 interface HeroProps {
@@ -36,69 +36,69 @@ export const Hero: React.FC<HeroProps> = ({ os, release }) => {
   const primary = getPrimaryDownload();
 
   return (
-    <section className="relative pt-20 pb-16 md:pt-28 md:pb-24 overflow-hidden">
-      {/* Background ambient lighting */}
+    <section className="relative pt-16 pb-12 md:pt-24 md:pb-16 overflow-hidden">
+      {/* Subtle App Glow Ambient */}
       <div
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] rounded-full blur-[140px] opacity-25 pointer-events-none transition-colors duration-700"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] rounded-full blur-[160px] opacity-20 pointer-events-none transition-colors duration-700"
         style={{ backgroundColor: 'var(--accent)' }}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-        {/* Release badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-card border border-white/10 text-xs font-semibold mb-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <span className="flex h-2 w-2 rounded-full animate-ping" style={{ backgroundColor: 'var(--accent)' }} />
-          <span className="text-neutral-200">Purrsonica {release.version} is now live</span>
-          <span className="text-neutral-400">• Multi-Platform Windows, macOS & Linux</span>
+        {/* Release Pill */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-color)] text-xs font-semibold mb-6">
+          <span className="flex h-2 w-2 rounded-full" style={{ backgroundColor: 'var(--accent)' }} />
+          <span className="text-[var(--text-primary)]">Purrsonica {release.version} is now available</span>
+          <span className="text-[var(--text-muted)]">• Windows, macOS & Linux</span>
         </div>
 
         {/* Hero Title */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.1]">
-          Your Music Library, <br />
+          The Modern Player for <br />
           <span
-            className="bg-clip-text text-transparent bg-gradient-to-r from-white via-neutral-200 to-neutral-400"
+            className="bg-clip-text text-transparent"
             style={{
-              backgroundImage: `linear-gradient(135deg, #ffffff 0%, var(--accent) 100%)`,
+              backgroundImage: `linear-gradient(135deg, #ffffff 30%, var(--accent) 100%)`,
             }}
           >
-            Faster & Smarter
+            Local Music & Video
           </span>
         </h1>
 
         {/* Subtitle */}
-        <p className="mt-6 text-lg sm:text-xl text-neutral-400 max-w-2xl mx-auto leading-relaxed">
-          The high-performance local music and video player with instant ghost paging for 50,000+ songs, interactive waveform scrubbing, DJ Camelot wheel analysis, and Discord Rich Presence.
+        <p className="mt-5 text-base sm:text-lg text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
+          Ultra-fast ghost virtualization for massive libraries, interactive waveform scrubbing, DJ Camelot wheel harmonic key analysis, and Discord Rich Presence.
         </p>
 
-        {/* CTA Buttons */}
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        {/* Action Buttons */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <a
             href={primary.url}
-            className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-xl accent-glow-button text-base font-bold transition-all hover:scale-105"
+            className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3.5 rounded-xl accent-btn-solid text-sm font-bold shadow-lg cursor-pointer"
           >
             {primary.icon}
             <div className="text-left">
               <div>{primary.label}</div>
-              <div className="text-[10px] opacity-80 font-normal">{primary.subtext}</div>
+              <div className="text-[10px] opacity-75 font-normal">{primary.subtext}</div>
             </div>
           </a>
 
           <a
             href="#download"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-4 rounded-xl glass-card hover:bg-white/10 border border-white/10 text-sm font-semibold text-neutral-200 transition-all hover:border-white/20"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] border border-[var(--border-color)] text-xs font-semibold text-[var(--text-primary)] transition-colors hover:border-neutral-500"
           >
-            <span>All Platforms & Formats</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>All Formats & Releases</span>
+            <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
           </a>
         </div>
 
-        {/* Trust Badges */}
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs font-semibold text-neutral-400">
+        {/* Key App Highlights */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs font-semibold text-[var(--text-secondary)]">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>100% Offline & Private (No Telemetry)</span>
+            <ShieldCheck className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+            <span>100% Offline & Private (Zero Telemetry)</span>
           </div>
           <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+            <Zap className="w-4 h-4 text-amber-400" />
             <span>50k+ Tracks in ~1ms</span>
           </div>
           <div className="flex items-center gap-2">
