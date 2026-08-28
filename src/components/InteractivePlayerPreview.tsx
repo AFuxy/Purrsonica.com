@@ -8,16 +8,24 @@ import {
   Repeat,
   Volume2,
   Heart,
-  Radio,
   Music,
   Tv,
   HardDrive,
+  Disc,
   ListPlus,
+  Plus,
   Search,
   ChevronLeft,
   ChevronRight,
-  Disc,
+  Settings,
+  Sun,
+  Moon,
   Clock,
+  MoreHorizontal,
+  FolderInput,
+  Radio,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
 
 interface MockTrack {
@@ -27,351 +35,485 @@ interface MockTrack {
   album: string;
   duration: number;
   durationStr: string;
-  key: string;
+  camelotKey: string;
+  musicalKey: string;
   bpm: number;
   isLiked?: boolean;
+  coverColor: string;
 }
 
-const MOCK_TRACKS: MockTrack[] = [
-  { id: '1', title: 'Midnight Drive', artist: 'Purrsonica Sound Lab', album: 'Neon Highways', duration: 214, durationStr: '3:34', key: '8A (Am)', bpm: 128, isLiked: true },
-  { id: '2', title: 'Cybernetic Dreams', artist: 'Starlight Avenue', album: 'Future Beats', duration: 188, durationStr: '3:08', key: '11B (A)', bpm: 124, isLiked: false },
-  { id: '3', title: 'Subway Pulse', artist: 'Ghost Frequency', album: 'Underground Odyssey', duration: 245, durationStr: '4:05', key: '4A (Fm)', bpm: 130, isLiked: true },
-  { id: '4', title: 'Velvet Horizon', artist: 'Astral Echoes', album: 'Solar Wind', duration: 196, durationStr: '3:16', key: '8B (C)', bpm: 120, isLiked: false },
-  { id: '5', title: 'Quantum Drift', artist: 'Hyperion Syndicate', album: 'Sub-Zero Resonance', duration: 232, durationStr: '3:52', key: '9A (Em)', bpm: 132, isLiked: true },
+const MOCK_LIBRARY: MockTrack[] = [
+  { id: '1', title: 'Midnight Drive', artist: 'Purrsonica Sound Lab', album: 'Neon Odyssey', duration: 214, durationStr: '3:34', camelotKey: '8A', musicalKey: 'Am', bpm: 128, isLiked: true, coverColor: '#064e3b' },
+  { id: '2', title: 'Cybernetic Dreams', artist: 'Starlight Avenue', album: 'Future Beats', duration: 188, durationStr: '3:08', camelotKey: '11B', musicalKey: 'A', bpm: 124, isLiked: false, coverColor: '#1e1b4b' },
+  { id: '3', title: 'Subway Pulse', artist: 'Ghost Frequency', album: 'Underground Velocity', duration: 245, durationStr: '4:05', camelotKey: '4A', musicalKey: 'Fm', bpm: 130, isLiked: true, coverColor: '#3b0764' },
+  { id: '4', title: 'Velvet Horizon', artist: 'Astral Echoes', album: 'Solar Wind', duration: 196, durationStr: '3:16', camelotKey: '8B', musicalKey: 'C', bpm: 120, isLiked: false, coverColor: '#701a75' },
+  { id: '5', title: 'Quantum Drift', artist: 'Hyperion Syndicate', album: 'Sub-Zero Resonance', duration: 232, durationStr: '3:52', camelotKey: '9A', musicalKey: 'Em', bpm: 132, isLiked: true, coverColor: '#14532d' },
+  { id: '6', title: 'Neon Skylines', artist: 'Vapor Synth', album: 'Retro City', duration: 205, durationStr: '3:25', camelotKey: '2B', musicalKey: 'F#', bpm: 126, isLiked: false, coverColor: '#1e293b' },
 ];
 
 export const InteractivePlayerPreview: React.FC = () => {
-  const [activeTrack, setActiveTrack] = useState<MockTrack>(MOCK_TRACKS[0]);
+  const [currentTrack, setCurrentTrack] = useState<MockTrack>(MOCK_LIBRARY[0]);
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentTime, setCurrentTime] = useState(48);
-  const [activeTab, setActiveTab] = useState<'all' | 'liked' | 'drive_c'>('all');
-  const [isLiked, setIsLiked] = useState(true);
+  const [currentView, setCurrentView] = useState<'all' | 'liked' | 'drive_c' | 'playlist'>('all');
+  const [likedMap, setLikedMap] = useState<Record<string, boolean>>({
+    '1': true,
+    '3': true,
+    '5': true,
+  });
+  const [searchFilter, setSearchFilter] = useState('');
 
-  // Playback timer
+  // Auto-play progress timer
   useEffect(() => {
     if (!isPlaying) return;
-    const interval = setInterval(() => {
-      setCurrentTime((prev) => (prev >= activeTrack.duration ? 0 : prev + 1));
+    const timer = setInterval(() => {
+      setCurrentTime((prev) => (prev >= currentTrack.duration ? 0 : prev + 1));
     }, 1000);
-    return () => clearInterval(interval);
-  }, [isPlaying, activeTrack]);
+    return () => clearInterval(timer);
+  }, [isPlaying, currentTrack]);
 
-  const handleSelectTrack = (track: MockTrack) => {
-    setActiveTrack(track);
-    setCurrentTime(0);
-    setIsPlaying(true);
-    setIsLiked(!!track.isLiked);
+  const handlePlayTrack = (t: MockTrack) => {
+    if (currentTrack.id === t.id) {
+      setIsPlaying(!isPlaying);
+    } else {
+      setCurrentTrack(t);
+      setCurrentTime(0);
+      setIsPlaying(true);
+    }
   };
 
-  const formatTime = (secs: number) => {
+  const toggleLike = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setLikedMap((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const formatDuration = (secs: number) => {
     const m = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  // Waveform generation
-  const totalBars = 54;
-  const bars = Array.from({ length: totalBars }, (_, i) => {
-    const raw = Math.sin(i * 0.28 + parseInt(activeTrack.id, 10)) * Math.cos(i * 0.12) * 0.65 + 0.35;
-    return Math.max(0.18, Math.min(1.0, Math.abs(raw)));
+  // Filtered tracks
+  const displayedTracks = MOCK_LIBRARY.filter((t) => {
+    if (currentView === 'liked' && !likedMap[t.id]) return false;
+    if (searchFilter.trim()) {
+      const q = searchFilter.toLowerCase();
+      return (
+        t.title.toLowerCase().includes(q) ||
+        t.artist.toLowerCase().includes(q) ||
+        t.album.toLowerCase().includes(q) ||
+        t.camelotKey.toLowerCase().includes(q)
+      );
+    }
+    return true;
   });
 
-  const activeBarIndex = Math.floor((currentTime / activeTrack.duration) * totalBars);
+  // Simulated Waveform Bars
+  const totalPeaks = 56;
+  const peaks = Array.from({ length: totalPeaks }, (_, i) => {
+    const val = Math.sin(i * 0.28 + parseInt(currentTrack.id, 10)) * Math.cos(i * 0.12) * 0.65 + 0.35;
+    return Math.max(0.15, Math.min(1.0, Math.abs(val)));
+  });
+  const activePeakIndex = Math.floor((currentTime / currentTrack.duration) * totalPeaks);
 
   return (
     <section id="demo" className="py-12 md:py-20 relative">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <span className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--text-muted)]">
-            Live Web Sandbox
+            Live Interactive Demo
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
-            Explore the Purrsonica Desktop Interface
+            Experience Purrsonica
           </h2>
           <p className="text-[var(--text-secondary)] text-xs sm:text-sm mt-2 max-w-xl mx-auto">
-            Click any song row, scrub the audio waveform, or switch sidebar views to test the real interface in your browser.
+            Interact with the simulated desktop app below. Double-click rows to switch tracks, scrub the audio waveform, and change views.
           </p>
         </div>
 
-        {/* Purrsonica Exact Desktop Window Mockup */}
-        <div className="app-window rounded-2xl overflow-hidden border border-[var(--border-color)] select-none">
+        {/* 1:1 Exact Purrsonica Desktop App Container */}
+        <div className="w-full rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-primary)] shadow-2xl select-none">
           {/* Top Titlebar */}
-          <div className="h-12 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] flex items-center justify-between px-4">
-            {/* Window Traffic Lights & Navigation History */}
-            <div className="flex items-center gap-3">
+          <header className="h-12 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] flex items-center justify-between px-4">
+            {/* Left: Brand, Logo & History Controls */}
+            <div className="flex items-center gap-2">
+              {/* Traffic Lights */}
               <div className="flex items-center gap-1.5 mr-2">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
                 <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
                 <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
               </div>
-              <img src="/PurrSonica-White.png" alt="Purrsonica" className="h-6 w-auto" />
-              <div className="flex items-center gap-1 ml-2 text-[var(--text-muted)]">
-                <div className="p-1 rounded-full hover:bg-[var(--bg-tertiary)]"><ChevronLeft className="w-3.5 h-3.5" /></div>
-                <div className="p-1 rounded-full hover:bg-[var(--bg-tertiary)]"><ChevronRight className="w-3.5 h-3.5" /></div>
+              <img src="/PurrSonica-White.png" alt="Purrsonica" className="h-7 w-auto object-contain" />
+              <div className="flex items-center gap-0.5 ml-1">
+                <button className="p-1.5 rounded-full text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-tertiary)] transition-all">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button className="p-1.5 rounded-full text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-tertiary)] transition-all">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
 
-            {/* Simulated Titlebar Search Box */}
-            <div className="hidden sm:flex items-center gap-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 w-72 text-xs text-[var(--text-muted)]">
-              <Search className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-              <span>Search tracks, artists, albums...</span>
+            {/* Center: Search input */}
+            <div className="flex items-center gap-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 w-64 sm:w-80 text-xs focus-within:border-emerald-500 transition-colors">
+              <Search className="w-3.5 h-3.5 text-[var(--text-muted)] flex-shrink-0" />
+              <input
+                type="text"
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                placeholder="Search tracks, artists, keys..."
+                className="bg-transparent text-xs text-[var(--text-primary)] outline-none w-full placeholder:text-[var(--text-muted)]"
+              />
             </div>
 
-            {/* Version & RPC Tag */}
+            {/* Right: Controls & Discord Tag */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#5865F2]/20 border border-[#5865F2]/30 text-[10px] font-bold text-[#8ea1e1]">
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#5865F2]/15 border border-[#5865F2]/30 text-[#8ea1e1] text-[11px]">
                 <Radio className="w-3 h-3 animate-pulse" />
-                <span>Discord RPC Ready</span>
+                <span>Discord RPC</span>
+              </div>
+              <div className="p-1.5 rounded-md text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-tertiary)] cursor-pointer">
+                <Settings className="w-4 h-4" />
+              </div>
+              <div className="p-1.5 rounded-md text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-tertiary)] cursor-pointer">
+                <Sun className="w-4 h-4 text-amber-400" />
               </div>
             </div>
-          </div>
+          </header>
 
-          {/* App Body (Sidebar + Content) */}
-          <div className="flex flex-col md:flex-row h-[420px] bg-[var(--bg-primary)]">
+          {/* Middle: Sidebar + Main Content Table */}
+          <div className="flex h-[420px] overflow-hidden">
             {/* Left Sidebar */}
-            <aside className="w-full md:w-56 bg-[var(--bg-secondary)] border-r border-[var(--border-color)] p-3 flex flex-col justify-between text-xs">
-              <div className="space-y-4">
+            <aside className="w-56 bg-[var(--bg-secondary)] border-r border-[var(--border-color)] flex flex-col justify-between p-3 select-none text-xs flex-shrink-0">
+              <div className="space-y-5 overflow-y-auto no-scrollbar">
                 {/* Main Views */}
                 <div className="space-y-1">
                   <button
-                    onClick={() => setActiveTab('all')}
+                    onClick={() => { setCurrentView('all'); setSearchFilter(''); }}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-semibold transition-all cursor-pointer ${
-                      activeTab === 'all'
-                        ? 'accent-btn-solid'
-                        : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-white'
+                      currentView === 'all'
+                        ? 'bg-emerald-500 text-black font-bold shadow-sm'
+                        : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Music className="w-3.5 h-3.5" />
+                      <Music className="w-4 h-4" />
                       <span>All Media</span>
                     </div>
-                    <span className={`text-[10px] font-mono px-1.5 rounded-full ${activeTab === 'all' ? 'bg-black/20 text-black' : 'bg-[var(--bg-tertiary)] text-[var(--text-muted)]'}`}>
-                      2,480
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${currentView === 'all' ? 'bg-black/20 text-black' : 'bg-[var(--bg-tertiary)] text-[var(--text-muted)]'}`}>
+                      {MOCK_LIBRARY.length}
                     </span>
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('liked')}
+                    onClick={() => { setCurrentView('liked'); setSearchFilter(''); }}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-semibold transition-all cursor-pointer ${
-                      activeTab === 'liked'
-                        ? 'accent-btn-solid'
-                        : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-white'
+                      currentView === 'liked'
+                        ? 'bg-emerald-500 text-black font-bold shadow-sm'
+                        : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Heart className={`w-3.5 h-3.5 ${activeTab === 'liked' ? 'fill-black' : 'text-emerald-400'}`} />
+                      <Heart className={`w-4 h-4 ${currentView === 'liked' ? 'fill-black' : 'fill-emerald-500 text-emerald-500'}`} />
                       <span>Liked Songs</span>
                     </div>
-                    <span className={`text-[10px] font-mono px-1.5 rounded-full ${activeTab === 'liked' ? 'bg-black/20 text-black' : 'bg-[var(--bg-tertiary)] text-[var(--text-muted)]'}`}>
-                      342
+                    <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${currentView === 'liked' ? 'bg-black/20 text-black' : 'bg-[var(--bg-tertiary)] text-[var(--text-muted)]'}`}>
+                      {Object.values(likedMap).filter(Boolean).length}
                     </span>
                   </button>
 
                   <button
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-white transition-all cursor-pointer"
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5">
-                      <Tv className="w-3.5 h-3.5" />
+                      <Tv className="w-4 h-4" />
                       <span>Videos</span>
                     </div>
-                    <span className="text-[10px] font-mono px-1.5 rounded-full bg-[var(--bg-tertiary)] text-[var(--text-muted)]">12</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[var(--bg-tertiary)] text-[var(--text-muted)]">12</span>
+                  </button>
+
+                  <button
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Disc className="w-4 h-4" />
+                      <span>Albums</span>
+                    </div>
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[var(--bg-tertiary)] text-[var(--text-muted)]">6</span>
                   </button>
                 </div>
 
                 {/* Storage Drives */}
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] px-3 mb-1">
-                    Storage Drives
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] px-3 mb-1.5">
+                    Physical Drives
                   </div>
-                  <button
-                    onClick={() => setActiveTab('drive_c')}
-                    className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
-                      activeTab === 'drive_c'
-                        ? 'bg-[var(--bg-tertiary)] text-white font-bold'
-                        : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <HardDrive className="w-3.5 h-3.5" />
-                      <span>Drive C:</span>
+                  <div className="space-y-0.5">
+                    <button
+                      onClick={() => setCurrentView('drive_c')}
+                      className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                        currentView === 'drive_c'
+                          ? 'bg-[var(--bg-tertiary)] text-emerald-400 font-bold border-l-2 border-emerald-500'
+                          : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <HardDrive className="w-3.5 h-3.5" />
+                        <span>Drive C:</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-[var(--text-muted)]">1,890</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Playlists */}
+                <div>
+                  <div className="flex items-center justify-between px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                    <span>Playlists</span>
+                    <Plus className="w-3 h-3 hover:text-white cursor-pointer" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="px-3 py-1.5 rounded-lg text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-white cursor-pointer truncate flex items-center gap-2">
+                      <ListPlus className="w-3.5 h-3.5" />
+                      <span>Cyberpunk Mix</span>
                     </div>
-                    <span className="text-[10px] font-mono text-[var(--text-muted)]">1,890</span>
-                  </button>
+                    <div className="px-3 py-1.5 rounded-lg text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-white cursor-pointer truncate flex items-center gap-2">
+                      <ListPlus className="w-3.5 h-3.5" />
+                      <span>DJ Set Prep</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Scan Storage Button */}
-              <div className="pt-2 border-t border-[var(--border-color)]">
-                <div
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg accent-btn-solid text-xs cursor-pointer"
+              {/* Bottom Actions */}
+              <div className="space-y-2 pt-3 border-t border-[var(--border-color)]">
+                <button
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold shadow-md transition-all cursor-pointer"
                 >
+                  <Zap className="w-3.5 h-3.5 fill-current" />
                   <span>Scan Storage</span>
-                </div>
+                </button>
               </div>
             </aside>
 
-            {/* Center: Track List Table */}
-            <main className="flex-1 overflow-y-auto p-4 bg-[var(--bg-primary)]">
-              {/* Column Headers */}
-              <div className="grid grid-cols-12 gap-2 px-3 py-2 text-[11px] font-semibold text-[var(--text-muted)] border-b border-[var(--border-color)] uppercase tracking-wider">
-                <div className="col-span-1">#</div>
-                <div className="col-span-6 sm:col-span-5">Title & Artist</div>
-                <div className="hidden sm:block sm:col-span-3">Album</div>
-                <div className="col-span-3 sm:col-span-2 text-center">DJ Key</div>
-                <div className="col-span-2 sm:col-span-1 text-right flex items-center justify-end">
-                  <Clock className="w-3.5 h-3.5" />
+            {/* Main Content Workspace (Header + Table) */}
+            <main className="flex-1 flex flex-col bg-[var(--bg-primary)] overflow-hidden">
+              {/* Header Title */}
+              <div className="p-4 border-b border-[var(--border-color)] flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-[var(--text-primary)]">
+                    {currentView === 'all' && 'All Media'}
+                    {currentView === 'liked' && 'Liked Songs'}
+                    {currentView === 'drive_c' && 'Drive C: Library'}
+                  </h3>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    {displayedTracks.length} tracks • Ready for playback
+                  </p>
                 </div>
               </div>
 
-              {/* Track Rows */}
-              <div className="space-y-1 mt-1">
-                {MOCK_TRACKS.map((t, idx) => {
-                  const isCurrent = activeTrack.id === t.id;
-                  return (
-                    <div
-                      key={t.id}
-                      onClick={() => handleSelectTrack(t)}
-                      className={`grid grid-cols-12 gap-2 items-center px-3 py-2 rounded-lg text-xs transition-colors cursor-pointer ${
-                        isCurrent
-                          ? 'bg-[var(--bg-tertiary)] text-white font-medium border-l-2'
-                          : 'hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-white'
-                      }`}
-                      style={{ borderLeftColor: isCurrent ? 'var(--accent)' : 'transparent' }}
-                    >
-                      {/* Play / Index */}
-                      <div className="col-span-1 flex items-center">
-                        {isCurrent && isPlaying ? (
-                          <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{ color: 'var(--accent)' }}>
-                            <Play className="w-3 h-3 fill-current" />
-                          </div>
-                        ) : (
-                          <span className="font-mono text-[var(--text-muted)]">{idx + 1}</span>
-                        )}
-                      </div>
+              {/* Exact Track Table */}
+              <div className="flex-1 overflow-y-auto">
+                {/* Column Headers */}
+                <div className="grid grid-cols-[36px_minmax(180px,2fr)_minmax(120px,1.2fr)_60px_80px_65px_40px] items-center px-4 py-2 text-[11px] font-semibold text-[var(--text-muted)] border-b border-[var(--border-color)] uppercase tracking-wider sticky top-0 bg-[var(--bg-primary)] z-10">
+                  <div className="text-center">#</div>
+                  <div>Title</div>
+                  <div>Album</div>
+                  <div className="text-right">BPM</div>
+                  <div className="text-center">Key</div>
+                  <div className="text-right flex items-center justify-end">
+                    <Clock className="w-3.5 h-3.5" />
+                  </div>
+                  <div></div>
+                </div>
 
-                      {/* Title & Artist */}
-                      <div className="col-span-6 sm:col-span-5 min-w-0 pr-2">
-                        <div className={`truncate ${isCurrent ? 'font-bold' : ''}`} style={{ color: isCurrent ? 'var(--accent)' : undefined }}>
-                          {t.title}
+                {/* Rows */}
+                <div className="divide-y divide-transparent">
+                  {displayedTracks.map((t, idx) => {
+                    const isCurrent = currentTrack.id === t.id;
+                    const isLikedTrack = likedMap[t.id];
+                    return (
+                      <div
+                        key={t.id}
+                        onDoubleClick={() => handlePlayTrack(t)}
+                        className={`grid grid-cols-[36px_minmax(180px,2fr)_minmax(120px,1.2fr)_60px_80px_65px_40px] items-center px-4 h-11 hover:bg-[var(--bg-tertiary)] transition-colors group cursor-pointer ${
+                          isCurrent ? 'bg-[var(--bg-tertiary)] text-emerald-400' : ''
+                        }`}
+                      >
+                        {/* Index / Play Button */}
+                        <div className="flex items-center justify-center">
+                          <button
+                            onClick={() => handlePlayTrack(t)}
+                            className="flex items-center justify-center"
+                          >
+                            {isCurrent && isPlaying ? (
+                              <Pause className="w-4 h-4 fill-current text-emerald-400" />
+                            ) : isCurrent && !isPlaying ? (
+                              <Play className="w-4 h-4 fill-current text-emerald-400" />
+                            ) : (
+                              <>
+                                <span className="text-xs text-[var(--text-muted)] group-hover:hidden font-mono">{idx + 1}</span>
+                                <Play className="w-4 h-4 fill-current text-white hidden group-hover:block" />
+                              </>
+                            )}
+                          </button>
                         </div>
-                        <div className="text-[10px] text-[var(--text-muted)] truncate">{t.artist}</div>
-                      </div>
 
-                      {/* Album */}
-                      <div className="hidden sm:block sm:col-span-3 text-[var(--text-muted)] truncate">
-                        {t.album}
-                      </div>
+                        {/* Title, Artist, Thumbnail */}
+                        <div className="flex items-center gap-2.5 min-w-0 pr-4">
+                          <div
+                            className="w-7 h-7 rounded overflow-hidden flex-shrink-0 flex items-center justify-center shadow-sm"
+                            style={{ backgroundColor: t.coverColor }}
+                          >
+                            <Disc className="w-4 h-4 text-white/50" />
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className={`font-semibold truncate text-xs ${isCurrent ? 'text-emerald-400' : 'text-[var(--text-primary)]'}`}>
+                              {t.title}
+                            </span>
+                            <span className="text-[10px] text-[var(--text-secondary)] truncate">
+                              {t.artist}
+                            </span>
+                          </div>
+                        </div>
 
-                      {/* Camelot DJ Key Badge */}
-                      <div className="col-span-3 sm:col-span-2 text-center">
-                        <span
-                          className="px-2 py-0.5 rounded text-[10px] font-mono font-bold inline-block"
-                          style={{
-                            backgroundColor: isCurrent ? 'var(--accent)' : 'var(--bg-tertiary)',
-                            color: isCurrent ? '#000000' : 'var(--accent)',
-                          }}
-                        >
-                          {t.key}
-                        </span>
-                      </div>
+                        {/* Album */}
+                        <div className="truncate text-[var(--text-secondary)] text-xs pr-4">
+                          {t.album}
+                        </div>
 
-                      {/* Duration */}
-                      <div className="col-span-2 sm:col-span-1 text-right font-mono text-[11px] text-[var(--text-muted)]">
-                        {t.durationStr}
+                        {/* BPM */}
+                        <div className="text-right font-mono text-[11px] pr-2 text-[var(--text-muted)]">
+                          {t.bpm}
+                        </div>
+
+                        {/* Camelot Key Badge */}
+                        <div className="flex items-center justify-center">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
+                              t.camelotKey.endsWith('A')
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                            }`}
+                          >
+                            {t.camelotKey}
+                          </span>
+                        </div>
+
+                        {/* Duration */}
+                        <div className="text-right font-mono text-[11px] text-[var(--text-muted)]">
+                          {t.durationStr}
+                        </div>
+
+                        {/* Like Button */}
+                        <div className="flex items-center justify-center">
+                          <button
+                            onClick={(e) => toggleLike(t.id, e)}
+                            className="p-1 text-[var(--text-muted)] hover:text-white transition-colors"
+                          >
+                            <Heart
+                              className={`w-3.5 h-3.5 ${isLikedTrack ? 'fill-emerald-500 text-emerald-500' : ''}`}
+                            />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </main>
           </div>
 
-          {/* Bottom Exact PlaybackBar */}
-          <footer className="h-20 bg-[var(--bg-secondary)] border-t border-[var(--border-color)] px-4 flex items-center justify-between select-none">
-            {/* Left: Active Track Details */}
-            <div className="flex items-center gap-3 w-1/3 min-w-[200px]">
-              <div className="w-12 h-12 rounded-lg bg-[var(--bg-tertiary)] flex items-center justify-center flex-shrink-0 shadow-md border border-white/5">
-                <Disc className="w-6 h-6 text-white/40 animate-spin-slow" />
+          {/* Bottom Persistent PlaybackBar */}
+          <footer className="h-20 bg-[var(--bg-secondary)] border-t border-[var(--border-color)] px-4 flex items-center justify-between z-40 select-none">
+            {/* Left: Current Track Details */}
+            <div className="flex items-center gap-3 w-1/3 max-w-sm min-w-[200px]">
+              <div
+                className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0 flex items-center justify-center shadow-md ring-1 ring-white/5"
+                style={{ backgroundColor: currentTrack.coverColor }}
+              >
+                <Disc className="w-6 h-6 text-white/50 animate-spin-slow" />
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-white truncate">{activeTrack.title}</div>
-                <div className="text-[11px] text-[var(--text-muted)] truncate">{activeTrack.artist}</div>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-xs font-semibold text-[var(--text-primary)] truncate">
+                  {currentTrack.title}
+                </span>
+                <span className="text-[11px] text-[var(--text-secondary)] truncate">
+                  {currentTrack.artist}
+                </span>
               </div>
               <button
-                onClick={() => setIsLiked(!isLiked)}
-                className="p-1 text-[var(--text-muted)] hover:text-white cursor-pointer"
+                onClick={() => toggleLike(currentTrack.id)}
+                className="text-[var(--text-muted)] hover:text-white transition-colors"
               >
-                <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} style={{ color: isLiked ? 'var(--accent)' : undefined }} />
+                <Heart className={`w-4 h-4 ${likedMap[currentTrack.id] ? 'fill-emerald-500 text-emerald-500' : ''}`} />
               </button>
             </div>
 
-            {/* Center: Waveform & Playback Controls */}
+            {/* Center: Controls & Waveform */}
             <div className="flex flex-col items-center gap-1.5 w-1/3 max-w-md">
               {/* Transport Buttons */}
-              <div className="flex items-center gap-3">
-                <button className="text-[var(--text-muted)] hover:text-white cursor-pointer"><Shuffle className="w-3.5 h-3.5" /></button>
+              <div className="flex items-center gap-4">
+                <button className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"><Shuffle className="w-3.5 h-3.5" /></button>
                 <button
                   onClick={() => setCurrentTime((t) => Math.max(0, t - 10))}
-                  className="text-[var(--text-muted)] hover:text-white cursor-pointer"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 >
                   <SkipBack className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setIsPlaying(!isPlaying)}
-                  className="w-8 h-8 rounded-full accent-btn-solid flex items-center justify-center cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center shadow transition-all hover:scale-105"
                 >
                   {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
                 </button>
                 <button
-                  onClick={() => setCurrentTime((t) => Math.min(activeTrack.duration, t + 10))}
-                  className="text-[var(--text-muted)] hover:text-white cursor-pointer"
+                  onClick={() => setCurrentTime((t) => Math.min(currentTrack.duration, t + 10))}
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 >
                   <SkipForward className="w-4 h-4" />
                 </button>
-                <button className="text-[var(--text-muted)] hover:text-white cursor-pointer"><Repeat className="w-3.5 h-3.5" /></button>
+                <button className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"><Repeat className="w-3.5 h-3.5" /></button>
               </div>
 
               {/* Seekable Waveform Bar */}
               <div className="w-full flex items-center gap-2">
-                <span className="text-[10px] font-mono" style={{ color: 'var(--accent)' }}>{formatTime(currentTime)}</span>
+                <span className="text-[10px] font-mono text-[var(--text-muted)]">{formatDuration(currentTime)}</span>
                 <div
                   className="flex-1 h-5 flex items-end gap-0.5 bg-[var(--bg-tertiary)] px-1.5 py-0.5 rounded cursor-pointer border border-[var(--border-color)]"
                   onClick={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-                    setCurrentTime(Math.floor(pct * activeTrack.duration));
+                    setCurrentTime(Math.floor(pct * currentTrack.duration));
                   }}
                 >
-                  {bars.map((barH, idx) => {
-                    const isPlayed = idx <= activeBarIndex;
+                  {peaks.map((p, idx) => {
+                    const isPlayed = idx <= activePeakIndex;
                     return (
                       <div
                         key={idx}
                         className="flex-1 rounded-full transition-all duration-75"
                         style={{
-                          height: `${Math.round(barH * 100)}%`,
-                          backgroundColor: isPlayed ? 'var(--accent)' : 'rgba(255, 255, 255, 0.18)',
+                          height: `${Math.round(p * 100)}%`,
+                          backgroundColor: isPlayed ? '#10b981' : 'rgba(255, 255, 255, 0.18)',
                         }}
                       />
                     );
                   })}
                 </div>
-                <span className="text-[10px] font-mono text-[var(--text-muted)]">{formatTime(activeTrack.duration)}</span>
+                <span className="text-[10px] font-mono text-[var(--text-muted)]">{formatDuration(currentTrack.duration)}</span>
               </div>
             </div>
 
-            {/* Right: DJ Badge & Volume */}
+            {/* Right: Key Pill & Volume Slider */}
             <div className="flex items-center justify-end gap-3 w-1/3 min-w-[200px]">
-              <div
-                className="px-2.5 py-1 rounded text-[11px] font-mono font-bold"
-                style={{ backgroundColor: 'var(--accent)', color: '#000000' }}
-              >
-                {activeTrack.key}
-              </div>
+              <span className="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                {currentTrack.camelotKey} ({currentTrack.musicalKey})
+              </span>
               <div className="flex items-center gap-2">
                 <Volume2 className="w-4 h-4 text-[var(--text-muted)]" />
-                <div className="w-20 h-1.5 rounded-full bg-[var(--bg-tertiary)] overflow-hidden border border-white/5">
-                  <div className="h-full rounded-full" style={{ width: '80%', backgroundColor: 'var(--accent)' }} />
+                <div className="w-20 h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: '80%' }} />
                 </div>
               </div>
             </div>
