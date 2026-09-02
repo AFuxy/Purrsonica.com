@@ -66,7 +66,7 @@ export const Hero: React.FC<HeroProps> = ({ os, release }) => {
 
         {/* Subtitle */}
         <p className="mt-5 text-base sm:text-lg text-[var(--text-secondary)] max-w-2xl mx-auto leading-relaxed">
-          Ultra-fast ghost virtualization for massive libraries, interactive waveform scrubbing, DJ Camelot wheel harmonic key analysis, and Discord Rich Presence.
+          Ultra-fast massive library loading, Fast playback, Camelot wheel harmonic key analysis, and Discord Rich Presence.
         </p>
 
         {/* Action Buttons */}
@@ -103,7 +103,7 @@ export const Hero: React.FC<HeroProps> = ({ os, release }) => {
           </div>
           <div className="flex items-center gap-2">
             <Disc3 className="w-4 h-4 text-indigo-400" />
-            <span>DJ Camelot Harmonic Mixing</span>
+            <span>Camelot Harmonic Mixing</span>
           </div>
         </div>
       </div>

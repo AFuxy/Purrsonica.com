@@ -60,7 +60,7 @@ export const CamelotDemo: React.FC = () => {
             Harmonic Mixing
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
-            DJ Camelot Wheel Compatibility
+            Camelot Wheel Compatibility
           </h2>
           <p className="text-[var(--text-secondary)] text-xs sm:text-sm mt-2">
             Click any musical key to see how Purrsonica calculates seamless harmonic transitions.

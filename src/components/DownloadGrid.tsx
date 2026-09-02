@@ -31,7 +31,7 @@ export const DownloadGrid: React.FC<DownloadGridProps> = ({ release }) => {
                 <Monitor className="w-5 h-5" />
               </div>
               <h3 className="text-lg font-bold text-white">Windows</h3>
-              <p className="text-xs text-[var(--text-muted)] mt-0.5 mb-5">Windows 10 & 11 (64-bit)</p>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5 mb-5">Windows 11 (64-bit)</p>
 
               <div className="space-y-2.5">
                 <a
@@ -55,17 +55,6 @@ export const DownloadGrid: React.FC<DownloadGridProps> = ({ release }) => {
                   </div>
                   <span className="text-[10px] text-[var(--text-muted)]">No setup</span>
                 </a>
-              </div>
-            </div>
-
-            <div className="mt-6 pt-3 border-t border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] space-y-1">
-              <div className="flex items-center gap-1.5">
-                <Check className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                <span>Auto-updater included</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Check className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                <span>Global Media Keys support</span>
               </div>
             </div>
           </div>
@@ -103,17 +92,6 @@ export const DownloadGrid: React.FC<DownloadGridProps> = ({ release }) => {
                 </a>
               </div>
             </div>
-
-            <div className="mt-6 pt-3 border-t border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] space-y-1">
-              <div className="flex items-center gap-1.5">
-                <Check className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                <span>Native traffic lights</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Check className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                <span>Apple Silicon native</span>
-              </div>
-            </div>
           </div>
 
           {/* Linux Card */}
@@ -147,17 +125,6 @@ export const DownloadGrid: React.FC<DownloadGridProps> = ({ release }) => {
                   </div>
                   <span className="text-[10px] text-[var(--text-muted)]">Ubuntu / Mint</span>
                 </a>
-              </div>
-            </div>
-
-            <div className="mt-6 pt-3 border-t border-[var(--border-color)] text-[11px] text-[var(--text-secondary)] space-y-1">
-              <div className="flex items-center gap-1.5">
-                <Check className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                <span>/media auto-mount support</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Check className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                <span>Zero system bloat</span>
               </div>
             </div>
           </div>

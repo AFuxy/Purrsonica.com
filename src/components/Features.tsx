@@ -6,11 +6,11 @@ export const Features: React.FC = () => {
     {
       icon: <Zap className="w-5 h-5 text-amber-400" />,
       title: 'Ghost Windowing & Instant Paging',
-      description: 'Zero page-switch lag. Asynchronous 250-item virtual windowing smoothly scrolls across 50,000+ tracks at 120 FPS with minimal RAM footprint.',
+      description: 'Zero page-switch lag. Asynchronous 250-item virtual windowing smoothly scrolls across 50,000+ tracks with minimal RAM footprint.',
     },
     {
       icon: <Disc3 className="w-5 h-5 text-indigo-400" />,
-      title: 'DJ Camelot Wheel & Key Detection',
+      title: 'Camelot Wheel & Key Detection',
       description: 'Automatic musical key analysis (1A–12B) and interactive Camelot Wheel picker to find harmonically compatible tracks for seamless transitions.',
     },
     {
@@ -26,7 +26,7 @@ export const Features: React.FC = () => {
     {
       icon: <Palette className="w-5 h-5 text-pink-400" />,
       title: 'Real-Time Accent Themes',
-      description: 'Choose from 7 signature color palettes (Cyberpunk Purple, Emerald, Sapphire, Ruby) or input custom hex colors with instant DOM theme updates.',
+      description: 'Choose from 7 signature color palettes (Cyberpunk Purple, Emerald, Sapphire, Ruby) or input custom hex colors.',
     },
     {
       icon: <FolderSearch className="w-5 h-5 text-cyan-400" />,
@@ -41,7 +41,7 @@ export const Features: React.FC = () => {
     {
       icon: <Cpu className="w-5 h-5 text-rose-400" />,
       title: 'Native Cross-Platform',
-      description: 'Built with optimized native bindings for Windows 10/11, macOS (Apple Silicon M1–M4 & Intel), and Linux (AppImage & Debian).',
+      description: 'Built with optimized native bindings for Windows 11, macOS (Apple Silicon M1–M4 & Intel), and Linux (AppImage & Debian).',
     },
   ];
 
